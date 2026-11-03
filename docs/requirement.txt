@@ -1,0 +1,3 @@
+REQ-DIAG-042: The ECU Shall support the UDS Service 0x22 Read Data by Identifier for DID 0xF190(VIN),
+              The responce shall contains 17 bytes VIN stored in NvM block. Access : default session and extended session
+              Security access : None
