@@ -51,10 +51,10 @@ def run_jsonl(path):
             text = item["text"]
             expected = item.get("expected")
             parsed = parse_requirement(text)
-            print(f"\n--- sample {idx} ---")
+            print(f"\n--- Requirement {idx} ---")
             print("parsed:", parsed)
             if expected:
-                print("expected:", expected)
+                print("\nexpected:", expected)
 
 
 if __name__ == "__main__":
