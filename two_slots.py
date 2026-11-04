@@ -1,8 +1,15 @@
 from pathlib import Path
 from agent.llm import chat, text_of
 
+
+def load_prompt(path):
+    text = Path(path).read_text(encoding="utf-8")
+    lines = [line for line in text.splitlines() if not line.startswith("#!")]
+    return "\n".join(lines).strip()
+
+
 # 1. Provide the system instructions
-SYSTEM = Path("prompts/analyst_system.md").read_text(encoding="utf-8")
+SYSTEM = load_prompt("prompts/analyst_system.md")
 
 # 2. Provide the context
 CONTEXT = """REQ-DIAG-042: The ECU shall support UDS service 0x22 for DID 0xF190 (VIN).

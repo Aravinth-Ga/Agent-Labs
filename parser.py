@@ -3,8 +3,15 @@ from agent.llm import chat, text_of
 from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
 
+
+def load_prompt(path):
+    text = Path(path).read_text(encoding="utf-8")
+    lines = [line for line in text.splitlines() if not line.startswith("#!")]
+    return "\n".join(lines).strip()
+
+
 # Prompt used to tell the model how to respond.
-SYSTEM = Path("prompts/parser_system.md").read_text(encoding="utf-8")
+SYSTEM = load_prompt("prompts/parser_system.md")
 
 
 # Structure of one parsed requirement.

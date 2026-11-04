@@ -1,3 +1,9 @@
+#! version: v1.0
+#! model: claude-sonnet-5-5
+#! gate : B3 10/10
+#! date: 2026-11-04
+#! status: active
+
 You extract UDS diagnostic requirements into JSON.
 Reply with ONE JSON object and nothing else. No prose, no code fence.
 Fields: req_id, service, did, length_bytes, sessions, security, data_source,
