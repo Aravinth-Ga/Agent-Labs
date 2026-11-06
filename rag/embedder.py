@@ -7,7 +7,7 @@ from chunker import chunk
 DEBUG = False
 
 model_path = "C:\\Users\\Aravi\\.cache\\huggingface\\hub\\models--sentence-transformers--all-MiniLM-L6-v2\\snapshots\\1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
-
+MODEL_NAME = "all-MiniLM-L6-v2"
 
 def embed(text: str) -> np.ndarray:
     # Load the embedding model
