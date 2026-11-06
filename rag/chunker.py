@@ -12,8 +12,8 @@ class Chunk:
 def get_non_empty_lines(text):
     return [line for line in text.splitlines() if line.strip()]
 
-# Split documents into fixed-size chunks with overlapping context.
-# Default values are roughly 400 tokens (~1600 chars) with a 60-token overlap (~240 chars).
+# Split documents into chunks using sentence boundaries whenever possible.
+# We use the character limit as a soft target, not a hard cut in the middle of a sentence.
 def chunk(documents, size_chars=1600, overlap_char=240):
     chunks = []
 
@@ -22,32 +22,48 @@ def chunk(documents, size_chars=1600, overlap_char=240):
         if not document.text:
             continue
 
-        # Remove empty lines first.
+        # Start with cleaned lines.
         lines = get_non_empty_lines(document.text)
-        current_chunk_lines, current_chunk_size = [], 0
+        sentence_parts = []
 
-        # Keep adding lines until the part is big enough.
-        for line_index, current_line in enumerate(lines):
-            current_chunk_lines.append(current_line)
-            current_chunk_size += len(current_line) + 1
+        # Break each line into sentence-like pieces.
+        for line in lines:
+            for sentence in line.replace("!", ".").replace("?", ".").split("."):
+                sentence = sentence.strip()
+                if sentence:
+                    sentence_parts.append(sentence)
 
-            # Save this chunk if it is large enough or if it is the last part.
-            if current_chunk_size >= size_chars or line_index == len(lines) - 1:
-                chunk_text = "\n".join(current_chunk_lines)
+        current_chunk_sentences = []
+        current_chunk_size = 0
+
+        # Keep adding sentences until we are close to the target size.
+        for sentence in sentence_parts:
+            next_size = current_chunk_size + len(sentence) + 1
+
+            if current_chunk_sentences and next_size > size_chars:
+                chunk_text = ". ".join(current_chunk_sentences) + "."
                 new_chunk = Chunk(chunk_text, document.file, document.page, len(chunks))
                 chunks.append(new_chunk)
 
-                # Keep the ending lines as overlap for the next chunk.
-                overlap_lines = []
+                # Keep overlap by reusing the last sentence(s) from the current chunk.
+                overlap_sentences = []
                 overlap_size = 0
+                while current_chunk_sentences and overlap_size < overlap_char:
+                    last_sentence = current_chunk_sentences.pop()
+                    overlap_sentences.insert(0, last_sentence)
+                    overlap_size += len(last_sentence) + 1
 
-                while current_chunk_lines and overlap_size < overlap_char:
-                    last_line = current_chunk_lines.pop()
-                    overlap_lines.insert(0, last_line)
-                    overlap_size += len(last_line) + 1
-
-                current_chunk_lines = overlap_lines
+                current_chunk_sentences = overlap_sentences
                 current_chunk_size = overlap_size
+
+            current_chunk_sentences.append(sentence)
+            current_chunk_size = sum(len(s) + 1 for s in current_chunk_sentences)
+
+        # Save the final remaining chunk.
+        if current_chunk_sentences:
+            chunk_text = ". ".join(current_chunk_sentences) + "."
+            new_chunk = Chunk(chunk_text, document.file, document.page, len(chunks))
+            chunks.append(new_chunk)
 
     # Print a small summary for debugging.
     for chunk_item in chunks:
