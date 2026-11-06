@@ -11,51 +11,51 @@ class Doc:
     page: int
 
 # Read one PDF and return one Doc per page.
-def load_pdf(p: Path) -> list[Doc]:
-    out = []
+def load_pdf(pdf_path: Path) -> list[Doc]:
+    extracted_docs = []
     try:
-        reader = PdfReader(str(p))
-        for i, page in enumerate(reader.pages, start=1):
-            text = (page.extract_text() or "").strip()    # Extract can return None aslo hence add " "
+        reader = PdfReader(str(pdf_path))
+        for page_number, page in enumerate(reader.pages, start=1):
+            text = (page.extract_text() or "").strip()
             if text:
-                out.append(Doc(text, p.name, i))
+                extracted_docs.append(Doc(text, pdf_path.name, page_number))
     except Exception as e:
-        print(f"[load] skipped PDF {p.name}: {e}")
+        print(f"[load] skipped PDF {pdf_path.name}: {e}")
 
-    return out
+    return extracted_docs
 
 # Read one text file and return it as one Doc.
-def load_text(p: Path) -> list[Doc]:
-    return [Doc(p.read_text(encoding="utf-8", errors="replace"), p.name, 0)]
+def load_text(file_path: Path) -> list[Doc]:
+    return [Doc(file_path.read_text(encoding="utf-8", errors="replace"), file_path.name, 0)]
 
 # Match each file extension to the correct loader.
 LOADERS = {".pdf": load_pdf, ".md": load_text, ".txt": load_text}
 
 # Load all supported files from a folder.
-def load(folder: str) -> list[Doc]:
-    docs = []
+def load(folder_path: str) -> list[Doc]:
+    all_docs = []
 
     # Walk the folder tree and process every matching file.
-    for p in sorted(Path(folder).rglob("*")):
-        fn = LOADERS.get(p.suffix.lower())
-        if fn:
+    for file_path in sorted(Path(folder_path).rglob("*")):
+        loader = LOADERS.get(file_path.suffix.lower())
+        if loader:
             try:
-                docs += fn(p)
+                all_docs += loader(file_path)
             except Exception as e:
-                print(f"[load] skipped {p.name}: {e}")
+                print(f"[load] skipped {file_path.name}: {e}")
 
     # Keep track of files that produced no text.
-    empty = [d for d in docs if not d.text]
+    empty_docs = [doc for doc in all_docs if not doc.text]
 
-    print(f"[load] {len(docs)} docs, {len(empty)} empty")
+    print(f"[load] {len(all_docs)} docs, {len(empty_docs)} empty")
 
     # Show a few empty documents for debugging.
-    for d in empty[:10]:
-        print(f"[load] EMPTY {d.file} p.{d.page}")
+    for doc in empty_docs[:10]:
+        print(f"[load] EMPTY {doc.file} p.{doc.page}")
 
-    return docs
+    return all_docs
 
 # Test code
 if __name__ == "__main__":
-    data = load('docs')
-    print(data[0].text[:300])
+    loaded_docs = load('docs')
+    print(loaded_docs[0].text[:300])
