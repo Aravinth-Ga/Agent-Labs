@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from loaders import load
 
+DEBUG = False
+
 @dataclass
 class Chunk:
     text: str
@@ -65,15 +67,11 @@ def chunk(documents, size_chars=1600, overlap_char=240):
             new_chunk = Chunk(chunk_text, document.file, document.page, len(chunks))
             chunks.append(new_chunk)
 
-    # Print a small summary for debugging.
-    for chunk_item in chunks:
-        print(f"[Chunk {chunk_item.text}] {chunk_item.file} page {chunk_item.page} -> {len(chunk_item.text)} chars\n\n")
+    if DEBUG:
+        print(f"[chunk] {len(chunks)} chunks created")
 
-    print(f"[chunk] {len(chunks)} chunks from {len(chunks)} documents")
-
-    # Debug code to print max chunk size
-    max_chunk_size = max((len(chunk.text) for chunk in chunks), default=0)
-    print(f"[Max Chunk size is] {max_chunk_size}")
+        max_chunk_size = max((len(chunk.text) for chunk in chunks), default=0)
+        print(f"[chunk] max chunk size: {max_chunk_size} chars")
 
     return chunks
 

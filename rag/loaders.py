@@ -3,6 +3,8 @@ from pathlib import Path
 from pypdf import PdfReader
 from openpyxl import load_workbook
 
+DEBUG = False
+
 # One extracted document chunk.
 @dataclass
 class Doc:
@@ -47,15 +49,16 @@ def load(folder_path: str) -> list[Doc]:
     # Keep track of files that produced no text.
     empty_docs = [doc for doc in all_docs if not doc.text]
 
-    print(f"[load] {len(all_docs)} docs, {len(empty_docs)} empty")
+    if DEBUG:
+        print(f"[load] {len(all_docs)} docs, {len(empty_docs)} empty")
 
-    # Show a few empty documents for debugging.
-    for doc in empty_docs[:10]:
-        print(f"[load] EMPTY {doc.file} p.{doc.page}")
+        # Show a few empty documents for debugging.
+        for doc in empty_docs[:10]:
+            print(f"[load] EMPTY {doc.file} p.{doc.page}")
 
     return all_docs
 
 # Test code
 if __name__ == "__main__":
     loaded_docs = load('docs')
-    print(loaded_docs[0].text[:300])
+    #print(loaded_docs[0].text[:300])
