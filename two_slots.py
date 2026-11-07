@@ -13,7 +13,9 @@ SYSTEM = load_prompt("prompts/analyst_system.md")
 
 # 2. Provide the context
 CONTEXT = """REQ-DIAG-042: The ECU shall support UDS service 0x22 for DID 0xF190 (VIN).
-Access: default session and extended session."""
+The response shall contain 17 bytes of the VIN stored in an NvM block.
+Access: default session and extended session.
+Security access: none."""
 
 QUESTIONS_FILE = Path("golden/b2_questions.txt")
 
