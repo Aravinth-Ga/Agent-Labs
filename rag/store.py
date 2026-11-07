@@ -1,4 +1,7 @@
+import os
+import shutil
 import chromadb
+
 from chunker import chunk
 from embedder import MODEL_NAME, embed
 
@@ -6,10 +9,37 @@ from embedder import MODEL_NAME, embed
 CHROMA_DB_PATH = "rag/store"
 BATCH_SIZE = 500
 
-
 # Create a single persistent client for the local vector database.
 vector_db_store_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
+
+def reset_database():
+    """Delete the on-disk ChromaDB directory so the collection is rebuilt from scratch."""
+    global vector_db_store_client
+
+    try:
+        if hasattr(vector_db_store_client, "_client"):
+            vector_db_store_client._client.close()
+    except Exception:
+        pass
+
+    try:
+        if hasattr(vector_db_store_client, "close"):
+            vector_db_store_client.close()
+    except Exception:
+        pass
+
+    if os.path.exists(CHROMA_DB_PATH):
+        shutil.rmtree(CHROMA_DB_PATH)
+        print(f"[store] removed persistent DB at {CHROMA_DB_PATH}")
+
+    vector_db_store_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+    return vector_db_store_client
+
+def reset_collection(collection_name="docs"):
+    """Delete the selected collection and rebuild the database from scratch."""
+    reset_database()
+    return get_collection(collection_name)
 
 def get_collection(collection_name="docs"):
     """Create or reuse the vector store for chunk retrieval."""
@@ -38,7 +68,7 @@ def store_chunks(chunks: list[chunk], collection_name="docs"):
             metadatas=[{"file": chunk.file, "page": chunk.page} for chunk in batch_chunks],
         )
 
-    print(f"[store] {collection.count()} chunks in '{collection_name}'")
+    #print(f"[store] {collection.count()} chunks in '{collection_name}'")
     return collection
 
 def retrieve_similar_chunks(question: str, top_k=5, collection_name="docs") -> list[dict]:
